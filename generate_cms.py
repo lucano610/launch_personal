@@ -2,107 +2,82 @@ import os
 import json
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import webbrowser
-from upload_utils import upload_image_to_gcs
+from upload_utils import upload_image_to_gcs  # from your upload_utils.py
 
-def unify_sidecars(posts):
-    """
-    Merge multiple items with the same shortCode into one parent + childPosts.
-    """
-    merged = {}
-
-    for p in posts:
-        sc = p.get("shortCode")
-        if not sc:
-            merged[p.get("id", "unknown_no_sc")] = p
-            continue
-        
-        if sc not in merged:
-            p.setdefault("childPosts", [])
-            merged[sc] = p
-        else:
-            parent = merged[sc]
-            parent.setdefault("childPosts", [])
-            parent["childPosts"].append(p)
-
-    return list(merged.values())
-
-
-def process_images_for_post(post, bucket_name):
-    """
-    Upload the 'main' post image, then child posts if any.
-    """
-    # Upload main (parent) post image
-    image_url = None
-    if 'images' in post and post['images']:
-        image_url = post['images'][0]
-    elif 'displayUrl' in post and post['displayUrl']:
-        image_url = post['displayUrl']
-    
-    if image_url:
-        try:
-            # Use post id to form a unique filename
-            destination_blob = f"images/{post.get('id','unknown')}.jpg"
-            public_url = upload_image_to_gcs(image_url, bucket_name, destination_blob)
-            post['proxy_image'] = public_url
-        except Exception as e:
-            print(f"Error uploading parent image for post {post.get('id')}: {e}")
-            # fallback to original
-            post['proxy_image'] = image_url
-    else:
-        post['proxy_image'] = None
-
-    # If this post has childPosts, upload each child
-    if 'childPosts' in post and isinstance(post['childPosts'], list):
-        for child in post['childPosts']:
-            child_url = None
-            if 'images' in child and child['images']:
-                child_url = child['images'][0]
-            elif 'displayUrl' in child and child['displayUrl']:
-                child_url = child['displayUrl']
-            
-            if child_url:
-                try:
-                    child_dest_blob = f"images/{child.get('id','child_unknown')}.jpg"
-                    public_url = upload_image_to_gcs(child_url, bucket_name, child_dest_blob)
-                    child['proxy_image'] = public_url
-                except Exception as ce:
-                    print(f"Error uploading child image for post {child.get('id')}: {ce}")
-                    child['proxy_image'] = child_url
-            else:
-                child['proxy_image'] = None
-
-
-def generate_cms_page(json_file: str, output_html: str, bucket_name: str):
-    # Load scraped JSON data
+def generate_nightclub_page(json_file: str, output_html: str, bucket_name: str):
+    # Load the scraped JSON data
     with open(json_file, 'r', encoding='utf-8') as f:
-        all_posts = json.load(f)
+        posts = json.load(f)
+    
+    # Limit total posts to 12
+    posts = posts[:12]
 
-    # Step 1: unify sidecars => so each 'parent' has a 'childPosts' array
-    posts_merged = unify_sidecars(all_posts)
+    # Determine the Instagram username from the first post, if available.
+    username = posts[0].get("ownerUsername") if posts and posts[0].get("ownerUsername") else "Instagram Account"
 
-    # (Optional) sort them by timestamp descending, if desired
-    # If a post is missing 'timestamp', it might sort unpredictably
-    posts_merged.sort(key=lambda p: p.get('timestamp',''), reverse=True)
+    # Process parent posts: upload the image and update the field "proxy_image"
+    for post in posts:
+        image_url = None
+        if post.get("images") and len(post["images"]) > 0:
+            image_url = post["images"][0]
+        elif post.get("displayUrl"):
+            image_url = post["displayUrl"]
+        
+        if image_url:
+            dest_blob = f"images/{post.get('id', 'unknown')}.jpg"
+            try:
+                public_url = upload_image_to_gcs(image_url, bucket_name, dest_blob)
+                post["proxy_image"] = public_url
+            except Exception as e:
+                print(f"Error uploading image for post {post.get('id')}: {e}")
+                post["proxy_image"] = image_url  # Fallback to original URL if upload fails
+        else:
+            post["proxy_image"] = None
 
-    # Step 2: upload images for parent + child
-    for post in posts_merged:
-        process_images_for_post(post, bucket_name)
+        # Process child posts (if any)
+        if post.get("childPosts") and isinstance(post["childPosts"], list):
+            for child in post["childPosts"]:
+                child_image_url = None
+                if child.get("images") and len(child["images"]) > 0:
+                    child_image_url = child["images"][0]
+                elif child.get("displayUrl"):
+                    child_image_url = child["displayUrl"]
+                if child_image_url:
+                    child_dest_blob = f"images/{child.get('id', 'unknown')}.jpg"
+                    try:
+                        child_public_url = upload_image_to_gcs(child_image_url, bucket_name, child_dest_blob)
+                        child["proxy_image"] = child_public_url
+                    except Exception as e:
+                        print(f"Error uploading image for child post {child.get('id')}: {e}")
+                        child["proxy_image"] = child_image_url
+                else:
+                    child["proxy_image"] = None
 
-    # Step 3: Render using Jinja2
+    # Split posts into landing_posts (first 3) and gallery_posts (the rest)
+    landing_posts = posts[:3]
+    gallery_posts = posts[3:]
+
+    # Set up the Jinja2 environment using your "templates" folder.
     env = Environment(
         loader=FileSystemLoader(searchpath="templates"),
         autoescape=select_autoescape(["html", "xml"])
     )
-    template = env.get_template("cms_template.html")
-    rendered_html = template.render(posts=posts_merged)
+    template = env.get_template("nightclub_template.html")
 
-    # Step 4: Write output HTML
+    # Render the template passing the username and both post lists.
+    rendered_html = template.render(
+        username=username,
+        landing_posts=landing_posts,
+        gallery_posts=gallery_posts
+    )
+
+    # Write the rendered HTML to the output file.
     with open(output_html, "w", encoding="utf-8") as f:
         f.write(rendered_html)
-
-    print("CMS HTML page generated successfully:", output_html)
+    
+    print("Nightclub HTML page generated:", output_html)
     webbrowser.open("file://" + os.path.realpath(output_html))
 
 if __name__ == "__main__":
-    # For local testing
-    generate_cms_page("static/scraped_data_example.json", "static/cms_output.html", "your-bucket-name")
+    # Example usage – update the JSON filename and your bucket name accordingly.
+    generate_nightclub_page("static/scraped_data_example.json", "static/nightclub_output.html", "your-gcs-bucket-name")

@@ -9,42 +9,40 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from apify_client import ApifyClient
 
-# Import the CMS generator function from generate_cms.py
-from generate_cms import generate_cms_page
+# Import the nightclub CMS generator function
+from generate_cms import generate_nightclub_page
 
-# Initialize FastAPI and templates
+# Initialize FastAPI and templates.
+# (If you still want to serve static files from a folder named "nightclub", mount that folder.)
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 load_dotenv()
 
-# Apify configuration: set your APIFY_TOKEN in the .env file
+# Apify configuration: set your APIFY_TOKEN in the .env file.
 APIFY_TOKEN = os.environ.get("APIFY_TOKEN", "your_apify_token")
 print("APIFY_TOKEN:", APIFY_TOKEN)
 
-# Create an ApifyClient instance
+# Create an ApifyClient instance.
 client = ApifyClient(APIFY_TOKEN)
 
-# Function to start the Instagram Scraper actor run using the ApifyClient.
-def run_instagram_scraper_sync(instagram_url: str, results_limit: int = 100) -> dict:
+def run_instagram_scraper_sync(instagram_url: str, results_limit: int = 12) -> dict:
     run_input = {
         "directUrls": [instagram_url],
         "resultsType": "posts",
         "resultsLimit": results_limit,
-        "scrapeComments": False,  # adjust as needed
+        "scrapeComments": False,
     }
-    # Start the actor run synchronously
     run = client.actor("apify/instagram-scraper").call(run_input=run_input)
     return run
 
-# Function to retrieve dataset items given a dataset ID.
 def get_dataset_items(default_dataset_id: str) -> list:
     dataset = client.dataset(default_dataset_id)
     items_response = dataset.list_items(limit=10000)
     return items_response.items
 
-# Main function: runs the entire process and writes output to a JSON file.
-async def run_apify_and_write_to_file(instagram_url: str, results_limit: int = 100) -> str:
+# Main function to run the scraping and write the JSON file in the nightclub folder.
+async def run_apify_and_write_to_file(instagram_url: str, results_limit: int = 12) -> str:
     # Run the actor call in a separate thread.
     run = await asyncio.to_thread(run_instagram_scraper_sync, instagram_url, results_limit)
     print("DEBUG: run data type:", type(run))
@@ -59,9 +57,13 @@ async def run_apify_and_write_to_file(instagram_url: str, results_limit: int = 1
     items = await asyncio.to_thread(get_dataset_items, default_dataset_id)
     print("DEBUG: Retrieved", len(items), "items.")
     
-    # Write the items to a JSON file.
+    # Save JSON output in the "nightclub" folder.
     filename = f"scraped_data_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
-    filepath = os.path.join("static", filename)
+    output_dir = "nightclub"  # use this folder for output
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    filepath = os.path.join(output_dir, filename)
+    
     try:
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(items, f)
@@ -71,7 +73,7 @@ async def run_apify_and_write_to_file(instagram_url: str, results_limit: int = 1
         raise HTTPException(status_code=500, detail=f"Failed to write data file: {e}")
     return filename
 
-# Define FastAPI endpoints.
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("first_dashboard.html", {"request": request, "download_link": None})
@@ -79,23 +81,23 @@ async def home(request: Request):
 @app.post("/scrape", response_class=HTMLResponse)
 async def scrape(request: Request, instagram_url: str = Form(...)):
     try:
-        filename = await run_apify_and_write_to_file(instagram_url, results_limit=100)
+        filename = await run_apify_and_write_to_file(instagram_url, results_limit=12)
     except Exception as e:
         print("Error during scraping and file writing:", e)
         raise HTTPException(status_code=500, detail=f"Scraping error: {e}")
     
-    # Determine the full path to the generated JSON file.
-    json_file = os.path.join("static", filename)
-    # Create an output filename for the CMS HTML page.
-    cms_output = os.path.join("static", f"cms_{datetime.now().strftime('%Y%m%d%H%M%S')}.html")
+    # Path to the JSON file in the nightclub folder.
+    json_file = os.path.join("nightclub", filename)
+    # Generate a CMS HTML file also in the nightclub folder.
+    cms_output = os.path.join("nightclub", f"cms_{datetime.now().strftime('%Y%m%d%H%M%S')}.html")
     
     # Get the GCS bucket name from the environment.
     bucket_name = os.environ.get("GCS_BUCKET_NAME")
     if not bucket_name:
         raise HTTPException(status_code=500, detail="GCS_BUCKET_NAME not set in environment")
     
-    # Call the CMS generator function in a separate thread.
-    await asyncio.to_thread(generate_cms_page, json_file, cms_output, bucket_name)
+    # Call the nightclub CMS generator.
+    await asyncio.to_thread(generate_nightclub_page, json_file, cms_output, bucket_name)
     
     file_size = os.path.getsize(json_file)
     print(f"File {filename} size: {file_size} bytes")
@@ -110,7 +112,7 @@ async def scrape(request: Request, instagram_url: str = Form(...)):
 @app.post("/scrape-text", response_class=PlainTextResponse)
 async def scrape_text(instagram_url: str = Form(...)):
     try:
-        filename = await run_apify_and_write_to_file(instagram_url, results_limit=100)
+        filename = await run_apify_and_write_to_file(instagram_url, results_limit=12)
     except Exception as e:
         return PlainTextResponse(f"Error: {e}", status_code=500)
     return PlainTextResponse(f"File created: /static/{filename}")
