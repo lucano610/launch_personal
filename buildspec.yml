@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo "Installing dependencies..."
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 831926624425.dkr.ecr.us-east-2.amazonaws.com
+      - IMAGE_NAME=my-app
+  build:
+    commands:
+      - echo "Building the Docker image..."
+      - docker build -t $IMAGE_NAME -f Dockerfile .
+  post_build:
+    commands:
+      - echo "Tagging the image..."
+      - docker tag $IMAGE_NAME:latest 831926624425.dkr.ecr.us-east-2.amazonaws.com/$IMAGE_NAME:latest
+      - echo "Pushing the Docker image..."
+      - docker push 831926624425.dkr.ecr.us-east-2.amazonaws.com/$IMAGE_NAME:latest
+
+artifacts:
+  files:
+    - '**/*'
