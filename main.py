@@ -59,7 +59,7 @@ async def run_apify_and_write_to_file(instagram_url: str, results_limit: int = 1
     
     # Save JSON output in the "nightclub" folder.
     filename = f"scraped_data_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
-    output_dir = "nightclub"  # use this folder for output
+    output_dir = "static"  # use this folder for output
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     filepath = os.path.join(output_dir, filename)
@@ -87,9 +87,9 @@ async def scrape(request: Request, instagram_url: str = Form(...)):
         raise HTTPException(status_code=500, detail=f"Scraping error: {e}")
     
     # Path to the JSON file in the nightclub folder.
-    json_file = os.path.join("nightclub", filename)
+    json_file = os.path.join("static", filename)
     # Generate a CMS HTML file also in the nightclub folder.
-    cms_output = os.path.join("nightclub", f"cms_{datetime.now().strftime('%Y%m%d%H%M%S')}.html")
+    cms_output = os.path.join("static", f"cms_{datetime.now().strftime('%Y%m%d%H%M%S')}.html")
     
     # Get the GCS bucket name from the environment.
     bucket_name = os.environ.get("GCS_BUCKET_NAME")
