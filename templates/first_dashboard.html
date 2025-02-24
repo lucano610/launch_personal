@@ -2,22 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Instagram Data Scraper Dashboard</title>
+  <title>LaUnch</title>
+  <style>
+    /* Reset and basic styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #000; /* Black background */
+      color: #fff;           /* White text */
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    label {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      outline: none;
+    }
+    button {
+      cursor: pointer;
+      background-color: #e0a800;
+      color: #000;
+      font-size: 1rem;
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.2s ease-in-out;
+    }
+    button:hover {
+      background-color: #ffc107;
+    }
+    .scrape-completed {
+      margin-top: 2rem;
+    }
+    .scrape-completed a {
+      color: #ffc107;
+      text-decoration: none;
+    }
+    .scrape-completed a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h1>Instagram Data Scraper Dashboard</h1>
-  <form action="/scrape" method="post">
-    <label for="instagram_url">Enter Instagram URL:</label>
-    <input type="text" id="instagram_url" name="instagram_url" placeholder="https://www.instagram.com/username/">
-    <button type="submit">Scrape Data</button>
-  </form>
-
-  {% if total_items is defined %}
-    <h2>Scraping Completed</h2>
-    <p>Total items scraped: {{ total_items }}</p>
-    <p>
-      <a href="{{ download_link }}">Download the full JSON data</a>
-    </p>
-  {% endif %}
+  <div class="container">
+    <h1>LaUnch</h1>
+    <form action="/scrape" method="post">
+      <label for="instagram_url">Start with your IG link</label>
+      <input 
+        type="text" 
+        id="instagram_url" 
+        name="instagram_url" 
+        placeholder="https://www.instagram.com/username/" 
+        autocomplete="off"
+      >
+      <button type="submit">Scrape Data</button>
+    </form>
+    {% if total_items is defined %}
+    <div class="scrape-completed">
+      <h2>Scraping Completed</h2>
+      <p>Total items scraped: {{ total_items }}</p>
+      <p>
+        <a href="{{ download_link }}">Download the full JSON data</a>
+      </p>
+    </div>
+    {% endif %}
+  </div>
 </body>
 </html>
