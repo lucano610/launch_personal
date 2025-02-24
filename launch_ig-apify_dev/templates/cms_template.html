@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Instagram Posts</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f8f8f8;
+    }
+    .post {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    /* reduce images a bit */
+    .post img {
+      max-width: 300px;
+      height: auto;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .child-posts {
+      margin-left: 2em;
+      padding-left: 1em;
+      border-left: 2px solid #ccc;
+    }
+    .child-posts img {
+      max-width: 200px;
+    }
+    .caption {
+      font-size: 1em;
+      color: #333;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Instagram Posts</h1>
+  
+  {% for post in posts %}
+    <div class="post">
+      {# Parent post image #}
+      {% if post.proxy_image %}
+        <img src="{{ post.proxy_image }}" alt="Post image" />
+      {% else %}
+        <p>[No image for parent]</p>
+      {% endif %}
+      
+      {# Parent caption #}
+      <div class="caption">
+        {% if post.caption %}
+          {{ post.caption }}
+        {% else %}
+          [No caption provided]
+        {% endif %}
+      </div>
+
+      {# Child posts, if any #}
+      {% if post.childPosts and post.childPosts|length > 0 %}
+        <div class="child-posts">
+          <h4>Child Posts</h4>
+          {% for child in post.childPosts %}
+            <div style="margin-bottom: 10px;">
+              {% if child.proxy_image %}
+                <img src="{{ child.proxy_image }}" alt="Child post image" />
+              {% else %}
+                <p>[No image for child]</p>
+              {% endif %}
+              {% if child.caption %}
+                <div class="caption">{{ child.caption }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</body>
+</html>

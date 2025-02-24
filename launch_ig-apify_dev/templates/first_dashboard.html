@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Instagram Data Scraper Dashboard</title>
+</head>
+<body>
+  <h1>Instagram Data Scraper Dashboard</h1>
+  <form action="/scrape" method="post">
+    <label for="instagram_url">Enter Instagram URL:</label>
+    <input type="text" id="instagram_url" name="instagram_url" placeholder="https://www.instagram.com/username/">
+    <button type="submit">Scrape Data</button>
+  </form>
+
+  {% if total_items is defined %}
+    <h2>Scraping Completed</h2>
+    <p>Total items scraped: {{ total_items }}</p>
+    <p>
+      <a href="{{ download_link }}">Download the full JSON data</a>
+    </p>
+  {% endif %}
+</body>
+</html>

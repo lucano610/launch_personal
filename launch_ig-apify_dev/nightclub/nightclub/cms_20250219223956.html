@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Instagram Account</title>
+  <!-- Use Major Mono Display from Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&display=swap" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #2E1A25; /* Warm, dark background */
+      color: #fff;               /* White text for contrast */
+      font-family: "Major Mono Display", monospace; /* Use Major Mono Display for all text */
+    }
+    header {
+      padding: 30px 0;
+      background: rgba(0,0,0,0.6);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.5em;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #e0a800;
+    }
+    h2 {
+      margin-top: 20px;
+      font-weight: 600;
+      color: #e0a800;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .landing-posts, .gallery-posts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      padding: 0 10px;
+      margin-bottom: 30px;
+    }
+    .post {
+      width: 300px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+      transition: transform 0.2s;
+    }
+    .post:hover {
+      transform: scale(1.03);
+    }
+    .post img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .child-posts {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .child-posts img {
+      width: 90px;
+      height: auto;
+      border-radius: 4px;
+    }
+    .caption {
+      font-size: 0.9em;
+      text-align: left;
+      margin-top: 8px;
+      color: #ddd;
+      line-height: 1.4;
+    }
+    /* Gallery container styling */
+    .gallery-posts .post {
+      margin-bottom: 30px;
+    }
+
+    /* TICKETS SECTION */
+    #buy-tickets {
+      margin: 50px auto;
+      max-width: 600px;
+      text-align: center;
+    }
+    .ticket-level {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px 20px;
+      margin: 10px 0;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    .ticket-level.sold-out {
+      opacity: 0.6;
+    }
+    .ticket-name {
+      font-size: 1.1em;
+      text-transform: uppercase;
+    }
+    .ticket-status {
+      font-size: 0.9em;
+      color: #bbb;
+    }
+    .ticket-price {
+      font-size: 1.2em;
+      color: #e0a800;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Instagram Account</h1>
+  </header>
+
+  <!-- Latest Highlights Section -->
+  <section>
+    <h2>Latest Highlights</h2>
+    <div class="landing-posts">
+      
+    </div>
+  </section>
+
+  <!-- Gallery Section -->
+  <section>
+    <h2>Gallery</h2>
+    <div class="gallery-posts">
+      
+    </div>
+  </section>
+
+  <!-- TICKETS SECTION -->
+  <section id="buy-tickets">
+    <h2>Tickets</h2>
+    <!-- Example ticket levels -->
+    <div class="ticket-level sold-out">
+      <span class="ticket-name">Phase I</span>
+      <span class="ticket-status">Sold Out</span>
+      <span class="ticket-price">$30</span>
+    </div>
+    <div class="ticket-level sold-out">
+      <span class="ticket-name">Phase II</span>
+      <span class="ticket-status">Sold Out</span>
+      <span class="ticket-price">$35</span>
+    </div>
+    <div class="ticket-level">
+      <span class="ticket-name">Last Batch</span>
+      <span class="ticket-status">Available</span>
+      <span class="ticket-price">$40</span>
+    </div>
+  </section>
+</body>
+</html>
