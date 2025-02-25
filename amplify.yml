@@ -5,13 +5,10 @@ applications:
       phases:
         preBuild:
           commands:
-            - echo "Installing dependencies..."
+            - echo "Creating Google creds file from environment variable..."
+            - echo "$GCP_CREDS_JSON" > google_creds.json
+            - export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/google_creds.json
             - pip install -r requirements.txt
-            - echo "Retrieving GCP credentials from AWS Secrets Manager..."
-            # Retrieve the secret from Secrets Manager and write it to secrets.json.
-            - aws secretsmanager get-secret-value --secret-id gcs/secrets/lucano --query 'SecretString' --output text > secrets.json
-            - export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/secrets.json
-            - echo "GOOGLE_APPLICATION_CREDENTIALS is set to $(pwd)/secrets.json"
         build:
           commands:
             - echo "Starting the server..."
