@@ -7,7 +7,11 @@ applications:
           commands:
             - echo "Installing dependencies..."
             - pip install -r requirements.txt
-            # (Optional: retrieve secrets, etc.)
+            - echo "Retrieving GCP credentials from AWS Secrets Manager..."
+            # Retrieve the secret from Secrets Manager and write it to secrets.json.
+            - aws secretsmanager get-secret-value --secret-id gcs/secrets/lucano --query 'SecretString' --output text > secrets.json
+            - export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/secrets.json
+            - echo "GOOGLE_APPLICATION_CREDENTIALS is set to $(pwd)/secrets.json"
         build:
           commands:
             - echo "Starting the server..."
