@@ -73,6 +73,9 @@ async def run_apify_and_write_to_file(instagram_url: str, results_limit: int = 1
         raise HTTPException(status_code=500, detail=f"Failed to write data file: {e}")
     return filename
 
+@app.get("/health", response_class=PlainTextResponse)
+async def health(request: Request):
+    return PlainTextResponse("OK")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
