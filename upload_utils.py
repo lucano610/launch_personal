@@ -20,6 +20,7 @@ def upload_image_to_gcs(image_url: str, bucket_name: str, destination_blob_name:
 
     # Upload the image data
     blob.upload_from_string(image_data, content_type=response.headers.get("Content-Type"))
+    print(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 
     # Because uniform bucket-level access is enabled, we can’t use legacy ACLs.
     # Ensure your bucket’s IAM policy grants public read (roles/storage.objectViewer for allUsers).
