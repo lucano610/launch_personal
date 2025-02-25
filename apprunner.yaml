@@ -1,5 +1,6 @@
 version: 1
-runtime: python3.11
+runtime: Python 3.11
+
 build:
   commands:
     - echo "Installing dependencies..."
